@@ -1,3 +1,5 @@
+import csv
+
 from flask import Flask, render_template, request, url_for, redirect, jsonify, json
 from flask_sqlalchemy import SQLAlchemy
 
@@ -78,19 +80,23 @@ de registro de facturas
 def factura():
     return render_template('factura.html')
 
+
 """
 Metodo que renderiza el formulario
 de prueba
 """
 
+
 @app.route('/registroprueba')
 def prueba():
     return render_template('formulario.html')
+
 
 """
 Metodo que ejecuta la accion de 
 almacenar una prueba
 """
+
 
 @app.route('/formulario', methods=['GET', 'POST'])
 def registroPrueba():
@@ -104,10 +110,12 @@ def registroPrueba():
 
     return redirect(url_for('index'))
 
+
 """
 Metodo que hace la accion de registrar
 una nueva factura
 """
+
 
 @app.route('/factura', methods=['GET', 'POST'])
 def registro():
@@ -134,10 +142,13 @@ def registro():
 
     return redirect(url_for("index"))
 
+
 """
 Metodo que consulta todos 
 las facturas existentes
 """
+
+
 @app.route('/lista')
 def lista():
     factura = Factura.query.all()
@@ -149,6 +160,8 @@ Metodo que me retorna un archivo
 en formato JSON con todas las 
 facturas existentes 
 """
+
+
 @app.route('/json', methods=['GET'])
 def listaJson():
     colum = ['numeroFactura', 'fechaEmision', 'fechaRadicacion', 'fechaVencimiento', 'fechaPago', 'valorBruto',
@@ -157,12 +170,15 @@ def listaJson():
     factura = [{col: getattr(d, col) for col in colum} for d in data]
     return jsonify(Factura=factura)
 
+
 """
 Metodo que me retorna un archivo
 en formato JSON con una unica 
 factura,la consulta se hace por
 medio del numero de factura
 """
+
+
 @app.route('/json/<int:id>/', methods=['GET'])
 def get_dev(id):
     colum = ['numeroFactura', 'fechaEmision', 'fechaRadicacion', 'fechaVencimiento', 'fechaPago', 'valorBruto',
@@ -171,9 +187,12 @@ def get_dev(id):
     factura = [{col: getattr(d, col) for col in colum} for d in data]
     return jsonify(factura=factura)
 
+
 """
 Metodo que elimina una factura
 """
+
+
 @app.route('/eliminar/<int:id>')
 def eliminar(id):
     factura = Factura.query.filter_by(numeroFactura=id).first()
@@ -189,6 +208,8 @@ def eliminar(id):
 """
 Metodo que edita una factura 
 """
+
+
 @app.route('/actualizar/<int:id>', methods=['GET', 'POST'])
 def actualizar(id):
     factura = Factura.query.filter_by(numeroFactura=id).first()
@@ -223,6 +244,21 @@ def actualizar(id):
         return redirect(url_for('lista'))
 
     return render_template('actualizar.html', factura=factura)
+
+
+"""
+Metodo que sube un csv y muestra
+sus datos en formato json 
+"""
+csv_path = './static/facturas.csv'
+csv_obj = csv.DictReader(open(csv_path, 'r'))
+csv_list = list(csv_obj)
+
+
+@app.route('/cargarCSV')
+def cargarCSV():
+    return render_template('archivo.html', object_list=csv_list)
+
 
 """
 Metodo que sube nuestra 
