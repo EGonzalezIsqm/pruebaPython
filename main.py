@@ -1,14 +1,16 @@
-from flask import Flask, render_template, request, url_for, redirect,jsonify,json
+from flask import Flask, render_template, request, url_for, redirect, jsonify, json
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.debug = True
 
+# Conexion ala Base de Datos
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://python:prueba12345@localhost/dbpython'
 
 db = SQLAlchemy(app)
 
 
+# Modelo Factura que hace referencia a nuestra tabla de la db
 class Factura(db.Model):
     __tablename__ = 'factura'
 
@@ -42,6 +44,7 @@ class Factura(db.Model):
         self.otrasRetenciones = otrasRetenciones
 
 
+# Modelo refenrente a tabla de prueba de la db
 class Prueba(db.Model):
     __tablename__ = 'prueba'
     id = db.Column(db.Integer, primary_key=True)
@@ -54,6 +57,10 @@ class Prueba(db.Model):
 
 db.create_all()
 
+"""
+Metodo que renderiza el index
+"""
+
 
 @app.route('/')
 @app.route('/index')
@@ -61,15 +68,29 @@ def index():
     return render_template('index.html')
 
 
+"""
+Metodo que renderiza el formulario
+de registro de facturas
+"""
+
+
 @app.route('/registrofacturas')
 def factura():
     return render_template('factura.html')
 
+"""
+Metodo que renderiza el formulario
+de prueba
+"""
 
 @app.route('/registroprueba')
 def prueba():
     return render_template('formulario.html')
 
+"""
+Metodo que ejecuta la accion de 
+almacenar una prueba
+"""
 
 @app.route('/formulario', methods=['GET', 'POST'])
 def registroPrueba():
@@ -83,6 +104,10 @@ def registroPrueba():
 
     return redirect(url_for('index'))
 
+"""
+Metodo que hace la accion de registrar
+una nueva factura
+"""
 
 @app.route('/factura', methods=['GET', 'POST'])
 def registro():
@@ -109,22 +134,36 @@ def registro():
 
     return redirect(url_for("index"))
 
-
+"""
+Metodo que consulta todos 
+las facturas existentes
+"""
 @app.route('/lista')
 def lista():
     factura = Factura.query.all()
     return render_template("lista.html", factura=factura)
 
 
-@app.route('/json' , methods=['GET'])
+"""
+Metodo que me retorna un archivo
+en formato JSON con todas las 
+facturas existentes 
+"""
+@app.route('/json', methods=['GET'])
 def listaJson():
-    colum = ['numeroFactura', 'fechaEmision', 'fechaRadicacion','fechaVencimiento','fechaPago','valorBruto','descuento','iva',      'retencionIva','retencionFuente','retencionICA','otrasRetenciones']
+    colum = ['numeroFactura', 'fechaEmision', 'fechaRadicacion', 'fechaVencimiento', 'fechaPago', 'valorBruto',
+             'descuento', 'iva', 'retencionIva', 'retencionFuente', 'retencionICA', 'otrasRetenciones']
     data = Factura.query.all()
     factura = [{col: getattr(d, col) for col in colum} for d in data]
     return jsonify(Factura=factura)
 
-
-@app.route('/json/<int:id>/' , methods=['GET'])
+"""
+Metodo que me retorna un archivo
+en formato JSON con una unica 
+factura,la consulta se hace por
+medio del numero de factura
+"""
+@app.route('/json/<int:id>/', methods=['GET'])
 def get_dev(id):
     colum = ['numeroFactura', 'fechaEmision', 'fechaRadicacion', 'fechaVencimiento', 'fechaPago', 'valorBruto',
              'descuento', 'iva', 'retencionIva', 'retencionFuente', 'retencionICA', 'otrasRetenciones']
@@ -132,7 +171,9 @@ def get_dev(id):
     factura = [{col: getattr(d, col) for col in colum} for d in data]
     return jsonify(factura=factura)
 
-
+"""
+Metodo que elimina una factura
+"""
 @app.route('/eliminar/<int:id>')
 def eliminar(id):
     factura = Factura.query.filter_by(numeroFactura=id).first()
@@ -145,6 +186,9 @@ def eliminar(id):
     return render_template('lista.html', factura=factura)
 
 
+"""
+Metodo que edita una factura 
+"""
 @app.route('/actualizar/<int:id>', methods=['GET', 'POST'])
 def actualizar(id):
     factura = Factura.query.filter_by(numeroFactura=id).first()
@@ -180,6 +224,9 @@ def actualizar(id):
 
     return render_template('actualizar.html', factura=factura)
 
-
+"""
+Metodo que sube nuestra 
+app
+"""
 if __name__ == '__main__':
     app.run(port=8000)
